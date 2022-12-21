@@ -13,10 +13,6 @@ class Player; // forward declaration so that Object can refer to Player
 class Object {
 public:
 
-	// Default constructor, just to make this release version compilable.
-	// If your implementation is correct this should be removed
-        Object();
-
 	// Constructor, specifying the name and the value of an object.
 	Object(string name, int value);
 
@@ -46,6 +42,10 @@ protected:
 
 	// TODO: add any other protected/private member variables
 
+    string name_;
+    int value_;
+    string object_name_;
+
 // Overloaded output stream redirection operator, printing the object to the
 // given output stream
 friend std::ostream& operator<<(std::ostream& os, const Object& o);
@@ -66,7 +66,6 @@ public:
 
 private:
 	// Add any member variables if needed
-
 };
 
 class Weapon : public Object {
@@ -95,7 +94,6 @@ public:
 
 private:
 	// Add any member variables if needed
-
 };
 
 // ----------------- Player and its subclasses --------------------

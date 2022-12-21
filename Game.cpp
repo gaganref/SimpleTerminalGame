@@ -2,30 +2,28 @@
 
 // -------------------- Object class ----------------------
 
-Object::Object() {} // REMOVE ME
-
 Object::Object(string name, int value) {
-	// IMPLEMENT ME
+	if(value < 0){
+        throw std::invalid_argument("Value should be a positive integer");
+    }
+    name_ = name;
+    value_ = value;
+    owner_ = nullptr;
 }
 
 Object::~Object() {}
 
 string Object::getName() const {
-	// IMPLEMENT ME
-
-	return ""; // dummy
+	return name_;
 }
 
 int Object::getValue() const {
-	// IMPLEMENT ME
-
-	return -1; // dummy
+	return value_;
 }
 
 string Object::print() const {
-	// IMPLEMENT ME
-
-	return ""; // dummy
+	string out_string_ = object_name_ + ", name: " + name_ + ", value: " + std::to_string(value_);
+	return out_string_;
 }
 
 void Object::use() {
@@ -34,26 +32,22 @@ void Object::use() {
 }
 
 std::ostream& operator<<(std::ostream& os, const Object& o) {
-	// IMPLEMENT ME
-
+    os << o.print();
 	return os;
 }
 
 // ------------------- Food class ----------------------
 
-Food::Food(string name, int value) {
-	// IMPLEMENT ME
-
+Food::Food(string name, int value) : Object(name, value){
+    object_name_ = "Food";
 }
 
 Food::~Food() {}
 
-
 // ------------------- Weapon class ----------------------
 
-Weapon::Weapon(string name, int value) {
-	// IMPLEMENT ME
-
+Weapon::Weapon(string name, int value) : Object(name, value) {
+    object_name_ = "Weapon";
 }
 
 Weapon::~Weapon() {}
@@ -61,13 +55,11 @@ Weapon::~Weapon() {}
 
 // ------------------- Armour class ----------------------
 
-Armour::Armour(string name, int value) {
-	// IMPLEMENT ME
-
+Armour::Armour(string name, int value) : Object(name, value) {
+    object_name_ = "Armour";
 }
 
 Armour::~Armour() {}
-
 
 // ------------------- Player class ----------------------
 
