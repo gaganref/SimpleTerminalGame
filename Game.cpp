@@ -1,12 +1,14 @@
 #include "Game.h"
 
+#include <utility>
+
 // -------------------- Object class ----------------------
 
 Object::Object(string name, int value) {
 	if(value < 0){
         throw std::invalid_argument("Value should be a positive integer");
     }
-    name_ = name;
+    name_ = std::move(name);
     value_ = value;
     owner_ = nullptr;
 }
@@ -22,13 +24,7 @@ int Object::getValue() const {
 }
 
 string Object::print() const {
-	string out_string_ = object_name_ + ", name: " + name_ + ", value: " + std::to_string(value_);
-	return out_string_;
-}
-
-void Object::use() {
-	// IMPLEMENT ME
-
+	return (", name: " + name_ + ", value: " + std::to_string(value_));
 }
 
 std::ostream& operator<<(std::ostream& os, const Object& o) {
@@ -38,114 +34,287 @@ std::ostream& operator<<(std::ostream& os, const Object& o) {
 
 // ------------------- Food class ----------------------
 
-Food::Food(string name, int value) : Object(name, value){
-    object_name_ = "Food";
+Food::Food(string name, int value) : Object(std::move(name), value){
 }
 
 Food::~Food() {}
 
+string Food::print() const {
+    return ("Food" + Object::print());
+}
+
+void Food::use() {
+    if(owner_ == nullptr){
+        return;
+    }
+
+    int target_stamina = owner_->getStamina() + value_;
+    if(target_stamina > 100){
+        target_stamina = 100;
+    }
+
+    owner_->setStamina(target_stamina);
+    owner_->removeInventoryItem(this);
+}
+
 // ------------------- Weapon class ----------------------
 
-Weapon::Weapon(string name, int value) : Object(name, value) {
-    object_name_ = "Weapon";
+Weapon::Weapon(string name, int value) : Object(std::move(name), value) {
 }
 
 Weapon::~Weapon() {}
 
+string Weapon::print() const {
+    return ("Weapon" + Object::print());
+}
+
+void Weapon::use() {
+    if(owner_ == nullptr){
+        return;
+    }
+
+    owner_->setWeaponInUse(this);
+}
+
 
 // ------------------- Armour class ----------------------
 
-Armour::Armour(string name, int value) : Object(name, value) {
-    object_name_ = "Armour";
+Armour::Armour(string name, int value) : Object(std::move(name), value) {
 }
 
 Armour::~Armour() {}
 
+string Armour::print() const {
+    return ("Armour" + Object::print());
+}
+
+void Armour::use() {
+    if(owner_ == nullptr){
+        return;
+    }
+
+    owner_->addArmourInUse(this);
+}
+
 // ------------------- Player class ----------------------
 
-Player::Player() {} // REMOVE ME
-
 Player::Player(string name) {
-	// IMPLEMENT ME
-
+	name_ = std::move(name);
+    health_ = 100;
+    stamina_ = 100;
+    weapon_in_use_ = nullptr;
 }
 
 Player::~Player() {}
 
 string Player::getName() const {
-	// IMPLEMENT ME
-
-	return ""; // dummy
+	return name_;
 }
 
 int Player::getHealth() const {
-	// IMPLEMENT ME
-
-	return -1; // dummy
+	return health_;
 }
 
 int Player::getStamina() const {
-	// IMPLEMENT ME
+    return stamina_;
+}
 
-	return -1; // dummy
+void Player::setHealth(const int health) {
+    if(health <= 0){
+        health_ = 0;
+        return;
+    }
+    if(health >= 100){
+        health_ = 100;
+        return;
+    }
+
+    health_ = health;
+}
+
+void Player::setStamina(const int stamina) {
+    stamina_ = stamina;
+}
+
+void Player::setWeaponInUse(Weapon* weapon) {
+    weapon_in_use_ = weapon;
+}
+
+void Player::addArmourInUse(Armour *armour) {
+    armour_in_use_.push_back(armour);
 }
 
 void Player::pickup(std::unique_ptr<Object> o) {
-	// IMPLEMENT ME
-
+    if(health_ <= 0){
+        throw std::logic_error("Player is already dead!");
+    }
+    o->owner_ = this;
+    inventory_.push_back(std::move(o));
 }
 
 string Player::getInventory() const {
-	// IMPLEMENT ME
 
-	return ""; // dummy
+    string out_string = "List of items:";
+
+    if(inventory_.empty()){
+        out_string += " none";
+    }
+    else{
+        out_string += "\n";
+        int itr = 0;
+        for(auto& element : inventory_){
+            out_string += " " + element->print();
+            if(itr < inventory_.size() - 1){
+                out_string += "\n";
+            }
+            itr++;
+        }
+    }
+
+	return out_string;
 }
 
 string Player::print() const {
-	// IMPLEMENT ME
+    string out_string = "Name: " + name_ + "\nType: " + player_type_;
+    out_string += "\nHealth: " + std::to_string(health_);
+    out_string += "\nStamina: " + std::to_string(stamina_);
+    out_string += "\n" + getInventory();
 
-	return ""; // dummy
+	return out_string;
 }
 
 bool Player::use(string name) {
-	// IMPLEMENT ME
+    if(health_ <= 0){
+        throw std::logic_error("Player is already dead!");
+    }
 
-	return false; // dummy
+    for(auto& element : inventory_){
+        if(element->getName() == name){
+            element->use();
+            return true;
+        }
+    }
+
+	return false;
+}
+
+void Player::removeInventoryItem(Object *obj) {
+    for(auto itr = inventory_.begin(); itr != inventory_.end(); ++itr )
+    {
+        if(itr->get() == obj )
+        {
+            inventory_.erase(itr);
+            break;
+        }
+    }
 }
 
 std::ostream& operator<<(std::ostream& os, const Player& p) {
-	// IMPLEMENT ME
-
+    os << p.print();
 	return os;
+}
+
+string Player::getArmourInfo() const {
+    string out_string = "Armour in use: ";
+
+    if(armour_in_use_.empty()){
+        out_string += "none";
+    }
+    else{
+        int itr = 0;
+        for(auto& element : armour_in_use_){
+            out_string += element->getName();
+            if(itr < armour_in_use_.size() - 1){
+                out_string += ", ";
+            }
+            itr++;
+        }
+    }
+
+    return out_string;
+}
+
+int Player::getDefendingStrength() {
+    int defending_strength = 0;
+    for(auto& element : armour_in_use_){
+        defending_strength += element->value_;
+    }
+    return defending_strength;
 }
 
 // ------------------- Fighter class ----------------------
 
-Fighter::Fighter(string name) {
-	// IMPLEMENT ME
-
+Fighter::Fighter(string name) : Player(std::move(name)) {
+    player_type_ = "Fighter";
 }
 
 Fighter::~Fighter() {}
 
 bool Fighter::attack(Player& other) {
-	// IMPLEMENT ME
+    if(health_ <= 0){
+        throw std::logic_error("Player is already dead!");
+    }
+    if(other.getHealth() <= 0){
+        throw std::logic_error("Stop! " + other.getName() + " is already dead.");
+    }
+    if(stamina_ < 10){
+        return false;
+    }
 
-	return false; // dummy
+    stamina_ -= 10;
+    int attack_strength = 10;
+    if(weapon_in_use_ != nullptr){
+        attack_strength += weapon_in_use_->getValue();
+    }
 
+    if(attack_strength <= other.getDefendingStrength()){
+        return false;
+    }
+
+    other.setHealth(other.getHealth() - (attack_strength - other.getDefendingStrength()));
+	return true;
+}
+
+string Fighter::print() const {
+    string out_string = Player::print();
+    out_string += "\nWeapon in use: ";
+    if(weapon_in_use_ != nullptr){
+        out_string += weapon_in_use_->getName();
+    }
+    else{
+        out_string += "none";
+    }
+    out_string += "\n" + getArmourInfo();
+    return out_string;
 }
 
 // ------------------- Healer class ----------------------
 
-Healer::Healer(string name) {
-	// IMPLEMENT ME
-
+Healer::Healer(string name) : Player(std::move(name)){
+    player_type_ = "Healer";
 }
 
 Healer::~Healer() {}
 
 bool Healer::heal(Player& other) {
-	// IMPLEMENT ME
+    if(health_ <= 0 || other.getHealth() <= 0){
+        throw std::logic_error("Player is already dead!");
+    }
+    if(stamina_ < 10){
+        return false;
+    }
 
-	return false; // dummy
+    stamina_ -= 10;
+
+    if(other.getHealth() == 100){
+        return false;
+    }
+
+    other.setHealth(other.getHealth() + 20);
+
+	return true;
+}
+
+string Healer::print() const {
+    return (Player::print() + "\n" + getArmourInfo());
 }

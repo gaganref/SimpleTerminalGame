@@ -4,7 +4,10 @@
 #include <iostream>
 #include <string>
 #include <memory>
+#include <vector>
 using std::string;
+using std::vector;
+using std::unique_ptr;
 
 class Player; // forward declaration so that Object can refer to Player
 
@@ -27,13 +30,13 @@ public:
 
 	// Return a string giving details of the object, as specified in
 	// the assignment webpage.
-	string print() const;
+	virtual string print() const;
 
 private:
 	// Use this object.
 	// This function should not be public; it only makes sense to be
 	// called from within a Player object (the player who owns it)
-	void use();
+	virtual void use() = 0;
 
 protected:
 	// You probably want to have something like this.
@@ -44,14 +47,13 @@ protected:
 
     string name_;
     int value_;
-    string object_name_;
 
 // Overloaded output stream redirection operator, printing the object to the
 // given output stream
 friend std::ostream& operator<<(std::ostream& os, const Object& o);
 
 // You can "friend" other classes
-
+friend Player;
 };
 
 class Food : public Object {
@@ -65,7 +67,11 @@ public:
 	// Add any member functions if needed
 
 private:
-	// Add any member variables if needed
+    // Add any member variables if needed
+    void use() override;
+
+public:
+    string print() const override;
 };
 
 class Weapon : public Object {
@@ -79,7 +85,11 @@ public:
 	// Add any member functions if needed
 
 private:
-	// Add any member variables if needed
+    // Add any member variables if needed
+    void use() override;
+
+public:
+    string print() const override;
 };
 
 class Armour : public Object {
@@ -94,17 +104,17 @@ public:
 
 private:
 	// Add any member variables if needed
+    void use() override;
+
+public:
+    string print() const override;
 };
 
 // ----------------- Player and its subclasses --------------------
 
 class Player {
 public:
-	// Default constructor, just to make this release version compilable.
-	// If your implementation is correct this should be removed
-	Player();
-
-	// Constructor, specifying the name of the player
+    // Constructor, specifying the name of the player
 	// Set the health and stamina both to 100
 	Player(string name);
 
@@ -132,21 +142,40 @@ public:
 
 	// Return a string that contains all details of a player, as
 	// specified in the assignment page
-	string print() const;
+	virtual string print() const;
 
 	// Use the object with the given name. If the player does not
 	// own any object of this name, return false and do nothing,
 	// otherwise return true.
 	bool use(string name);
 
+    void removeInventoryItem(Object* obj);
+    void setHealth(int health);
+    void setStamina(int stamina);
+    void setWeaponInUse(Weapon* weapon);
+    void addArmourInUse(Armour* armour);
+    string getArmourInfo() const;
+    int getDefendingStrength();
+
 protected:
 	// TODO: add any protected or private member variables
+
+    string name_;
+    int health_;
+    int stamina_;
+    string player_type_;
+
+    vector<unique_ptr<Object>> inventory_;
+
+    Weapon* weapon_in_use_;
+    vector<Armour*> armour_in_use_;
 
 // Overloaded stream redirection operator, that prints the contents of
 // the player to the given output stream
 friend std::ostream& operator<<(std::ostream& os, const Player& p);
 
 // You can "friend" other classes
+friend Object;
 };
 
 class Fighter : public Player {
@@ -167,6 +196,8 @@ public:
 private:
 	// add any member variables if needed
 
+public:
+    string print() const override;
 };
 
 class Healer : public Player {
@@ -183,6 +214,9 @@ public:
 
 private:
 	// add any member variables if needed
+
+public:
+    string print() const override;
 
 };
 
