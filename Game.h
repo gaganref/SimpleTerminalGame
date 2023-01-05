@@ -30,7 +30,9 @@ public:
 
 	// Return a string giving details of the object, as specified in
 	// the assignment webpage.
-	virtual string print() const;
+	string print() const;
+
+    virtual string getObjectType() const = 0;
 
 private:
 	// Use this object.
@@ -71,7 +73,7 @@ private:
     void use() override;
 
 public:
-    string print() const override;
+    string getObjectType() const override;
 };
 
 class Weapon : public Object {
@@ -89,7 +91,7 @@ private:
     void use() override;
 
 public:
-    string print() const override;
+    string getObjectType() const override;
 };
 
 class Armour : public Object {
@@ -107,7 +109,7 @@ private:
     void use() override;
 
 public:
-    string print() const override;
+    string getObjectType() const override;
 };
 
 // ----------------- Player and its subclasses --------------------
@@ -156,6 +158,7 @@ public:
     void addArmourInUse(Armour* armour);
     string getArmourInfo() const;
     int getDefendingStrength();
+    virtual string getPlayerType() const = 0;
 
 protected:
 	// TODO: add any protected or private member variables
@@ -163,7 +166,6 @@ protected:
     string name_;
     int health_;
     int stamina_;
-    string player_type_;
 
     vector<unique_ptr<Object>> inventory_;
 
@@ -191,13 +193,13 @@ public:
 	bool attack(Player& other);
 
 	// Add any other functions if needed
+    string print() const override;
+
+    string getPlayerType() const override;
 
 
 private:
 	// add any member variables if needed
-
-public:
-    string print() const override;
 };
 
 class Healer : public Player {
@@ -211,12 +213,12 @@ public:
 	// Heal the specified player, following the rules in the
 	// assignment page
 	bool heal(Player& other);
+    string print() const override;
+
+    string getPlayerType() const override;
 
 private:
 	// add any member variables if needed
-
-public:
-    string print() const override;
 
 };
 

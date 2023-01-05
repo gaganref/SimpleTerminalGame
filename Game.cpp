@@ -24,7 +24,7 @@ int Object::getValue() const {
 }
 
 string Object::print() const {
-	return (", name: " + name_ + ", value: " + std::to_string(value_));
+	return (getObjectType() + ", name: " + name_ + ", value: " + std::to_string(value_));
 }
 
 std::ostream& operator<<(std::ostream& os, const Object& o) {
@@ -38,10 +38,6 @@ Food::Food(string name, int value) : Object(std::move(name), value){
 }
 
 Food::~Food() {}
-
-string Food::print() const {
-    return ("Food" + Object::print());
-}
 
 void Food::use() {
     if(owner_ == nullptr){
@@ -57,6 +53,10 @@ void Food::use() {
     owner_->removeInventoryItem(this);
 }
 
+string Food::getObjectType() const {
+    return "Food";
+}
+
 // ------------------- Weapon class ----------------------
 
 Weapon::Weapon(string name, int value) : Object(std::move(name), value) {
@@ -64,16 +64,16 @@ Weapon::Weapon(string name, int value) : Object(std::move(name), value) {
 
 Weapon::~Weapon() {}
 
-string Weapon::print() const {
-    return ("Weapon" + Object::print());
-}
-
 void Weapon::use() {
     if(owner_ == nullptr){
         return;
     }
 
     owner_->setWeaponInUse(this);
+}
+
+string Weapon::getObjectType() const {
+    return "Weapon";
 }
 
 
@@ -84,16 +84,16 @@ Armour::Armour(string name, int value) : Object(std::move(name), value) {
 
 Armour::~Armour() {}
 
-string Armour::print() const {
-    return ("Armour" + Object::print());
-}
-
 void Armour::use() {
     if(owner_ == nullptr){
         return;
     }
 
     owner_->addArmourInUse(this);
+}
+
+string Armour::getObjectType() const {
+    return "Armour";
 }
 
 // ------------------- Player class ----------------------
@@ -175,7 +175,7 @@ string Player::getInventory() const {
 }
 
 string Player::print() const {
-    string out_string = "Name: " + name_ + "\nType: " + player_type_;
+    string out_string = "Name: " + name_ + "\nType: " + getPlayerType();
     out_string += "\nHealth: " + std::to_string(health_);
     out_string += "\nStamina: " + std::to_string(stamina_);
     out_string += "\n" + getInventory();
@@ -244,9 +244,7 @@ int Player::getDefendingStrength() {
 
 // ------------------- Fighter class ----------------------
 
-Fighter::Fighter(string name) : Player(std::move(name)) {
-    player_type_ = "Fighter";
-}
+Fighter::Fighter(string name) : Player(std::move(name)) {}
 
 Fighter::~Fighter() {}
 
@@ -288,11 +286,13 @@ string Fighter::print() const {
     return out_string;
 }
 
+string Fighter::getPlayerType() const {
+    return "Fighter";
+}
+
 // ------------------- Healer class ----------------------
 
-Healer::Healer(string name) : Player(std::move(name)){
-    player_type_ = "Healer";
-}
+Healer::Healer(string name) : Player(std::move(name)){}
 
 Healer::~Healer() {}
 
@@ -317,4 +317,8 @@ bool Healer::heal(Player& other) {
 
 string Healer::print() const {
     return (Player::print() + "\n" + getArmourInfo());
+}
+
+string Healer::getPlayerType() const {
+    return "Healer";
 }
